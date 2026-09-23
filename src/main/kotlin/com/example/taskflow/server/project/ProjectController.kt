@@ -17,44 +17,59 @@ import org.springframework.web.server.ResponseStatusException
 class ProjectController (private val projectRepository: ProjectRepository) {
 
     @GetMapping
-    fun getProjects() : List<Project> {
-        return projectRepository.findAll()
+    fun getProjects(): List<ProjectResponse> {
+        return projectRepository
+            .findAll()
+            .map { project -> project.toResponse() }
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createProject(requestBody: CreateProjectRequest) : Project {
-        val project = Project (
-            name = requestBody.name
+    fun createProject(
+        @RequestBody request: CreateProjectRequest,
+    ): ProjectResponse {
+        val project = Project(
+            name = request.name,
         )
-        return projectRepository.save(project)
+
+        return projectRepository
+            .save(project)
+            .toResponse()
     }
 
     @GetMapping("/{id}")
     fun getProject(
         @PathVariable id: Long,
-    ): Project {
-        return projectRepository.findById(id).orElseThrow {
-            ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Project not found",
-            )
-        }
+    ): ProjectResponse {
+        val project = projectRepository.findById(id)
+            .orElseThrow {
+                ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Project not found",
+                )
+            }
+
+        return project.toResponse()
     }
 
     @PatchMapping("/{id}")
     fun updateProject(
         @PathVariable id: Long,
         @RequestBody request: UpdateProjectRequest,
-    ): Project {
-        val project = projectRepository.findById(id).orElseThrow {
-            ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Project not found",
-            )
-        }
+    ): ProjectResponse {
+        val project = projectRepository.findById(id)
+            .orElseThrow {
+                ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Project not found",
+                )
+            }
+
         project.name = request.name
-        return projectRepository.save(project)
+
+        return projectRepository
+            .save(project)
+            .toResponse()
     }
 
     @DeleteMapping("/{id}")
