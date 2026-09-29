@@ -1,0 +1,13 @@
+    Clean
+./gradlew clean
+
+    Build
+./gradlew build
+
+    Run
+./gradlew bootRun
+
+    Build to a single app jar:
+./gradlew bootJar
+    The dist jar file can be found at build/libs/taskflow-server-0.0.1-SNAPSHOT.jar. To run standalone server, type:
+java -jar taskflow-server-0.0.1-SNAPSHOT.jar
