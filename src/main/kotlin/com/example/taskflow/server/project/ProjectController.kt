@@ -1,6 +1,8 @@
 package com.example.taskflow.server.project
 
+import com.example.taskflow.server.auth.AuthenticatedUser
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -10,80 +12,68 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
+
 
 @RestController
 @RequestMapping("/projects")
-class ProjectController (private val projectRepository: ProjectRepository) {
-
-    @GetMapping
-    fun getProjects(): List<ProjectResponse> {
-        return projectRepository
-            .findAll()
-            .map { project -> project.toResponse() }
-    }
+class ProjectController(
+    private val projectService: ProjectService,
+) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createProject(
+        @AuthenticationPrincipal user: AuthenticatedUser,
         @RequestBody request: CreateProjectRequest,
     ): ProjectResponse {
-        val project = Project(
-            name = request.name,
+        return projectService.createProject(
+            userId = user.id,
+            request = request,
         )
+    }
 
-        return projectRepository
-            .save(project)
-            .toResponse()
+    @GetMapping
+    fun getProjects(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+    ): List<ProjectResponse> {
+        return projectService.getProjects(
+            userId = user.id,
+        )
     }
 
     @GetMapping("/{id}")
     fun getProject(
+        @AuthenticationPrincipal user: AuthenticatedUser,
         @PathVariable id: Long,
     ): ProjectResponse {
-        val project = projectRepository.findById(id)
-            .orElseThrow {
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Project not found",
-                )
-            }
-
-        return project.toResponse()
+        return projectService.getProject(
+            userId = user.id,
+            projectId = id,
+        )
     }
 
     @PatchMapping("/{id}")
     fun updateProject(
+        @AuthenticationPrincipal user: AuthenticatedUser,
         @PathVariable id: Long,
         @RequestBody request: UpdateProjectRequest,
     ): ProjectResponse {
-        val project = projectRepository.findById(id)
-            .orElseThrow {
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Project not found",
-                )
-            }
-
-        project.name = request.name
-
-        return projectRepository
-            .save(project)
-            .toResponse()
+        return projectService.updateProject(
+            userId = user.id,
+            projectId = id,
+            request = request,
+        )
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteProject(
+        @AuthenticationPrincipal user: AuthenticatedUser,
         @PathVariable id: Long,
     ) {
-        val project = projectRepository.findById(id)
-            .orElseThrow {
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Project not found",
-                )
-            }
-        projectRepository.delete(project)
+        projectService.deleteProject(
+            userId = user.id,
+            projectId = id,
+        )
     }
 }
