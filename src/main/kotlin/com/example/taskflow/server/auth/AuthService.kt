@@ -68,8 +68,36 @@ class AuthService(
         }
 
         val accessToken = jwtService.generateAccessToken(user)
+        val refreshToken = jwtService.generateRefreshToken(user)
 
-        return LoginResponse(accessToken = accessToken,
-            expiresIn = jwtService.accessTokenExpiration)
+        return LoginResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            tokenType = "Bearer",
+            expiresIn =
+                jwtService.accessTokenExpiration,
+        )
+    }
+
+    fun refresh(
+        refreshToken: String,
+    ): RefreshTokenResponse {
+        val userId =
+            jwtService.extractRefreshTokenUserId(
+                refreshToken
+            )
+
+        val user = userRepository.findById(userId).orElseThrow {
+            InvalidCredentialsException()
+                }
+
+        val accessToken =
+            jwtService.generateAccessToken(user)
+
+        return RefreshTokenResponse(
+            accessToken = accessToken,
+            expiresIn =
+                jwtService.accessTokenExpiration,
+        )
     }
 }

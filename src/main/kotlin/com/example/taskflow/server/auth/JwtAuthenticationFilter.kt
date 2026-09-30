@@ -33,7 +33,7 @@ class JwtAuthenticationFilter(
         val token = authorizationHeader.removePrefix("Bearer ").trim()
 
         try {
-            val userId = jwtService.extractUserId(token)
+            val userId = jwtService.extractAccessTokenUserId(token)
 
             val authenticatedUser = AuthenticatedUser(
                 id = userId,
