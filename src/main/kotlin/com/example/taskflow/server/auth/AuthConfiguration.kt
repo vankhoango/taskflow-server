@@ -1,6 +1,7 @@
 package com.example.taskflow.server.auth
 
 import com.example.taskflow.server.auth.token.JwtAuthenticationFilter
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -37,12 +38,25 @@ class AuthConfiguration {
                     .requestMatchers(
                         "/auth/register",
                         "/auth/login",
+                        "/auth/refresh",
                         "/health",
                     )
                     .permitAll()
 
                     .anyRequest()
                     .authenticated()
+            }
+
+            .exceptionHandling {
+                it.authenticationEntryPoint {
+                        _,
+                        response,
+                        _,
+                    ->
+                    response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED
+                    )
+                }
             }
 
             .addFilterBefore(
