@@ -3,6 +3,7 @@ package com.example.taskflow.server.task
 import com.example.taskflow.server.auth.AuthenticatedUser
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -39,6 +40,18 @@ class ProjectTasksController(
             userId = user.id,
             projectId = projectId,
             request = request,
+        )
+    }
+
+    @DeleteMapping("/completed")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun clearCompletedTasks(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable projectId: Long,
+    ) {
+        taskService.clearCompletedTasks(
+            userId = user.id,
+            projectId = projectId,
         )
     }
 }

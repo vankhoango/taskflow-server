@@ -3,6 +3,7 @@ package com.example.taskflow.server.task
 import com.example.taskflow.server.project.ProjectNotFoundException
 import com.example.taskflow.server.project.ProjectRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TaskService(
@@ -103,5 +104,22 @@ class TaskService(
                 userId = userId,
             )
             ?: throw TaskNotFoundException(taskId)
+    }
+
+    @Transactional
+    fun clearCompletedTasks(
+        userId: Long,
+        projectId: Long,
+    ) {
+        projectRepository.findByIdAndUser_Id(
+            id = projectId,
+            userId = userId,
+        ) ?: throw ProjectNotFoundException(projectId)
+
+        taskRepository
+            .deleteAllByProject_IdAndProject_User_IdAndCompletedTrue(
+                projectId = projectId,
+                userId = userId,
+            )
     }
 }

@@ -13,4 +13,9 @@ interface TaskRepository : JpaRepository<Task, Long> {
         id: Long,
         userId: Long,
     ): Task?
+
+    fun deleteAllByProject_IdAndProject_User_IdAndCompletedTrue(
+        projectId: Long,
+        userId: Long,
+    )
 }
