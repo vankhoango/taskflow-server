@@ -4,6 +4,7 @@ import com.example.taskflow.server.auth.AuthenticatedUser
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -14,11 +15,17 @@ class JwtAuthenticationFilter(
     private val jwtService: JwtService,
 ) : OncePerRequestFilter() {
 
+    private val logger =
+        LoggerFactory.getLogger(
+            JwtAuthenticationFilter::class.java
+        )
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
+
         val authorizationHeader =
             request.getHeader("Authorization")
 
@@ -30,14 +37,21 @@ class JwtAuthenticationFilter(
             return
         }
 
-        val token = authorizationHeader.removePrefix("Bearer ").trim()
+        val token =
+            authorizationHeader
+                .removePrefix("Bearer ")
+                .trim()
 
         try {
-            val userId = jwtService.extractAccessTokenUserId(token)
+            val userId =
+                jwtService.extractAccessTokenUserId(
+                    token
+                )
 
-            val authenticatedUser = AuthenticatedUser(
-                id = userId,
-            )
+            val authenticatedUser =
+                AuthenticatedUser(
+                    id = userId,
+                )
 
             val authentication =
                 UsernamePasswordAuthenticationToken(
@@ -49,11 +63,23 @@ class JwtAuthenticationFilter(
             SecurityContextHolder
                 .getContext()
                 .authentication = authentication
-        } catch (_: Exception) {
-            // Invalid token.
-            // Leave the request unauthenticated.
+
+        } catch (exception: Exception) {
+
+            logger.warn(
+                "JWT rejected path={}, tokenHash={}, " +
+                        "exception={}, message={}",
+                request.requestURI,
+                token.hashCode(),
+                exception::class.simpleName,
+                exception.message,
+            )
         }
 
-        filterChain.doFilter(request, response)
+        filterChain.doFilter(
+            request,
+            response,
+        )
+
     }
 }
